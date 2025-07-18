@@ -137,3 +137,31 @@ app.post("/user/login", passport.authenticate("local"), (req, res) => {
 
   res.status(200).send(userDetails);
 });
+
+app.get("/user/status", (req, res) => {
+  console.log("inside the user endpoint /user/status");
+
+  const userDetails = req.user; // passport js stored directly inside the req.user
+
+  if (!userDetails) return res.sendStatus(401);
+
+  res.status(200).send({
+    userDetails,
+    session: req.session,
+  });
+});
+
+app.post("/user/logout", (req, res) => {
+  if (!req.user)
+    return res.status(401).send({
+      message: "not logged it",
+    });
+
+  req.logOut((err) => {
+    if (err) return next(err);
+  });
+
+  return res.status(200).send({
+    message: "Sucessfully logged out",
+  });
+});
