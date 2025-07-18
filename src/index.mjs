@@ -12,8 +12,23 @@ import {
 
 import passport from "passport";
 import "./stratergies/local-stratergy.mjs";
+import mongoose from "mongoose";
+
+import { User } from "./models/users.mjs";
 
 const app = express();
+
+//mongoose is a orm of mongodb and has to connect with the mongodb servicess that was created
+export default mongoose
+  .connect("mongodb://127.0.0.1:27017/express-tutorial")
+  .then(() => {
+    console.log("Conected to the Database");
+  })
+  .catch((err) =>
+    console.error({
+      Error: err,
+    })
+  );
 
 const PORT = process.env.PORT || 3000; //defualt port of the process.env.PORT the port given by any hosting web services or our port which is 3000
 
@@ -163,5 +178,43 @@ app.post("/user/logout", (req, res) => {
 
   return res.status(200).send({
     message: "Sucessfully logged out",
+  });
+});
+
+//manipulating the database basic crud
+
+app.post("/mongo/user/", async (req, res) => {
+  const { username, password, displayName, cart } = req.body;
+
+  if (!username || !password) return res.sendStatus(401);
+
+  try {
+    const newUser = await User.create({
+      username,
+      password,
+      displayName: displayName || null,
+      cart: cart || [],
+    });
+
+    await newUser.save();
+
+    if (!newUser) throw new Error("coudnt create user");
+
+    res.status(201).send({
+      message: "Successfully created User",
+      newUser,
+    });
+  } catch (err) {
+    res.status(500).send({
+      error: err,
+    });
+  }
+});
+
+app.get("/mongo/user/", async (req, res) => {
+  const allUsers = await User.find();
+
+  res.status(200).send({
+    allUsers,
   });
 });
